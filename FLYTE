@@ -1,0 +1,258 @@
+//GLOBAL VARIABLES
+var superMan;
+var build; 
+var obj;
+var moving;
+var run;
+var elem;
+var gameCanvas;
+var txt;
+var explosion;
+var playing = false;
+var score = 0;
+var scoreboard;
+var gameOver;
+var boom;
+var randomY;
+var firstLine;
+var secondLine;
+var thirdLine;
+
+//START SCREEN CONSTANTS
+var stCanvas = new Color(135, 206, 235);
+var CENTERX = getWidth() /2;
+var CENTERY = getHeight() / 2;
+var orange = new Color(161,248,245);
+var titleColor = new Color(255, 255, 255);
+var dim = 100;
+
+//*********************************************
+//api's from https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+//*********************************************
+//window.requestAnimationFrame();
+//window.cancelAnimationFrame();
+
+//SUPERMAN CONSTANTS
+var XPOS = getWidth()/10;
+var YPOS = getHeight()/2.5;
+
+//OBSTACLE CONSTANTS
+//building texture from https://www.google.ca/url?sa=i&url=https%3A%2F%2Fclipartpng.com%2F%3F2798%2Ctall-skyscraper-png-clipart&psig=AOvVaw1O9NdDMgCB9qJfRDUmKaVS&ust=1651444815007000&source=images&cd=vfe&ved=0CAwQjRxqFwoTCIi2xMPtvPcCFQAAAAAdAAAAABAD
+var BUILDONE = new WebImage('https://codehs.com/uploads/1d58eaa1d5c92812761088b997ecac34');
+    BUILDONE.setSize(50, 120);
+    BUILDONE.setPosition(getWidth(), getHeight() - 120);
+var BUILDTWO = new WebImage('https://codehs.com/uploads/1d58eaa1d5c92812761088b997ecac34');
+    BUILDTWO.setSize(50, 220);
+    BUILDTWO.rotate(180);
+    BUILDTWO.setPosition(getWidth(), 0);
+var BUILDTHREE = new WebImage('https://codehs.com/uploads/1d58eaa1d5c92812761088b997ecac34');
+    BUILDTHREE.setSize(50, 300);
+    BUILDTHREE.setPosition(getWidth(), getHeight() - 300);
+var BUILDFOUR = new WebImage('https://codehs.com/uploads/1d58eaa1d5c92812761088b997ecac34');
+    BUILDFOUR.setSize(50, 275);
+    BUILDFOUR.rotate(180);
+    BUILDFOUR.setPosition(getWidth(), 0);
+var BUILDFIVE = new WebImage('https://codehs.com/uploads/1d58eaa1d5c92812761088b997ecac34');
+    BUILDFIVE.setSize(50, 180);
+    BUILDFIVE.setPosition(getWidth(), 0);
+    BUILDFIVE.rotate(180);
+var BUILDSIX = new WebImage('https://codehs.com/uploads/1d58eaa1d5c92812761088b997ecac34');
+    BUILDSIX.setSize(50, 260);
+    BUILDSIX.setPosition(getWidth(), getHeight() - 260);
+    
+var obstacles = [BUILDONE, BUILDTWO, BUILDTHREE, BUILDFOUR, BUILDFIVE, BUILDSIX];
+
+//Cloud constants
+//cloud link https://cdn141.picsart.com/318421152111211.png
+var bgCloud = new WebImage('https://codehs.com/uploads/062da197e53574724edce5ceb104ffe7');
+bgCloud.setSize(200, 50);
+
+function start(){
+    startCanvas();
+    mouseClickMethod(gameStart);
+}
+
+//creates the initial start screen
+function startCanvas(){
+    gameCanvas = new Rectangle(getWidth(), getHeight());
+    gameCanvas.setColor(stCanvas);
+    add(gameCanvas);
+    
+    txt = new WebImage("https://codehs.com/uploads/d104f10b8befa974319425709d2a6035");
+    txt.setSize(390,240);
+    txt.setPosition(CENTERX - CENTERY / 2 - 74 , CENTERY - txt.getHeight() / 1.25 );
+    add(txt);
+    
+    firstLine = new Text("Use up & down arrow keys to move", " 13pt Lucida Console");
+    firstLine.setPosition(CENTERX - firstLine.getWidth()/2, CENTERY / 2 + 189);
+    firstLine.setColor(Color.WHITE);
+    add(firstLine);
+    
+    secondLine = new Text("Click the background to begin", " 13pt Lucida Console");
+    secondLine.setPosition(CENTERX - secondLine.getWidth()/2, CENTERY / 2 + 269);
+    secondLine.setColor(Color.WHITE);
+    add(secondLine);
+    
+    thirdLine = new Text("Avoid all the buildings", " 13pt Lucida Console");
+    thirdLine.setPosition(CENTERX - thirdLine.getWidth() /2, CENTERY / 2 + 229);
+    thirdLine.setColor(Color.WHITE);
+    add(thirdLine);
+}
+
+//removes the start screen, and the game begins
+function gameStart(){
+    score = 0;
+    if(playing == false){
+        remove(txt);
+        remove(firstLine);
+        remove(secondLine);
+        remove(thirdLine);
+        insertSuperMan();
+        setTimer(movingClouds, 5000);
+        setTimer(summonObstacle, 3000);
+    }
+    playing = true;
+    keyDownMethod(changeSuperManPosition);
+    scoreboard = new Text("Score: " + score, "15pt Lucida Console");
+        scoreboard.setPosition(10,30);
+        scoreboard.setColor("#372c2e");
+        add(scoreboard);
+        
+        playing = true;
+        keyDownMethod(changeSuperManPosition);
+}
+
+
+//adding superman
+function insertSuperMan(){
+    superMan = new WebImage('https://th.bing.com/th/id/R.88d06117f240611161031ab81745fc2e?rik=mqVXtVBmO1dUow&riu=http%3a%2f%2forig02.deviantart.net%2feb25%2ff%2f2011%2f234%2f6%2ff%2f16_bit_superman_sprite_by_cstuck-d47fcgm.png&ehk=smMkpFRPBxY6yt5ki3rpx2rAiro4yXil5LUYZohR9a8%3d&risl=&pid=ImgRaw&r=0');
+    superMan.setSize(80, 80);
+    superMan.setPosition(XPOS, YPOS);
+    add(superMan);
+}
+
+//moving superman
+function changeSuperManPosition(e){
+    if(e.keyCode == Keyboard.UP){
+        if(YPOS > 0){
+            YPOS = YPOS - 30;
+            superMan.setPosition(XPOS, YPOS);
+        }
+    }
+    if(e.keyCode == Keyboard.DOWN){
+        if(YPOS < getHeight() /1.16){
+            YPOS = YPOS + 30;
+            superMan.setPosition(XPOS, YPOS);
+        }
+    }
+}
+
+//creating and summoning the moving buildings
+function summonObstacle(){
+        obj = Randomizer.nextInt(0, 5);
+        build = obstacles[obj];
+        obstacles.push(build);
+        var last = obstacles.length - 1;
+        add(obstacles[last]);
+        moving = obstacles[last];
+        moveO();
+}
+
+//moving the buildings across the screen, stops the summonObstacle function upon collision with superman
+function moveO(){
+    if(moving.getX() > 0){
+        window.requestAnimationFrame(moveO, 150);
+    }
+    moving.move(-2.5, 0);
+    if(moving.getX() < 0 ){
+        moving.setPosition(getWidth(), moving.getY())
+    }
+    if(superMan.getX() + superMan.getWidth() >= moving.getX() &&
+    superMan.getX() <= moving.getX() + moving.getWidth() &&
+    superMan.getY() + superMan.getHeight() >= moving.getY() &&
+    superMan.getY() <= moving.getY() + moving.getHeight()){
+        stopTimer(summonObstacle);
+        remove(superMan);
+        collisionSequence();
+    }else if(moving.getX() <= 0 && playing == true){
+        remove(scoreboard);
+        score = score + 1;
+        var win = new Sound(1000, "pwm");
+        win.playFor(0.15);
+        scoreboard.setText("Score: " + score);
+        add(scoreboard);
+    }
+}
+
+//this creates an explosion that occurs when superman hits a building
+function collisionSequence(){
+    remove(superMan);
+    remove(moving);
+    
+    explosion = new WebImage('https://codehs.com/uploads/524894270d9941ec2e113bd0755930ca');
+    explosion.setSize(dim, dim);
+    explosion.setPosition(superMan.getX(), superMan.getY());
+    add(explosion);
+    
+    
+    //sound effect from https://www.zapsplat.com/sound-effect-category/explosions/page/3/
+    boom = new Audio("https://codehs.com/uploads/4f4d9398c880dd5c435caee8cd83e738");
+    boom.play();
+    
+    setTimer(explosionFlames, 1000);
+}
+
+//this grows the flames of the explosion and starts the end screen
+function explosionFlames(){
+    window.requestAnimationFrame(explosionFlames);
+    removeAll();
+    add(gameCanvas);
+    dim = dim + 2;
+    explosion.setSize(dim, dim);
+    explosion.setPosition(explosion.getX() - 1, explosion.getY() - 1);
+    add(explosion);
+
+    if(explosion.getWidth() > getWidth() && explosion.getHeight() > getHeight()){
+        remove(explosion);
+        stopTimer(explosionFlames);
+        gameCanvas.setColor(Color.BLACK);
+        endProgram(); 
+        boom.pause();
+    }
+    
+}
+
+//this creates the game over screen that shows your final score
+function endProgram(){
+    //this picture is from https://th.bing.com/th/id/R.ec5a15ec736bb6573c1e146231ff1cac?rik=GdLDgOpqmS6ehw&riu=http%3a%2f%2fhdqwalls.com%2fdownload%2fgame-over-typography-pic-2048x1152.jpg&ehk=qkiYH3JVIIOF4SqRklarqd%2fgPuPMZ%2b0aE5FHIQXBhj8%3d&risl=&pid=ImgRaw&r=0
+    gameOver = new WebImage('https://codehs.com/uploads/fd218a76706fb772d22a64b688eacfcf');
+    gameOver.setSize(390, 250);
+    gameOver.setPosition(CENTERX - CENTERY + 50 , CENTERY/ 2);
+    add(gameOver);
+    
+    var finalScore = new Text("Your score was: " + score, "15pt Lucida Console");
+    finalScore.setPosition(getWidth()/2 - gameOver.getX() * 10, getHeight()/2  + gameOver.getY()/2);
+    finalScore.setColor(Color.WHITE);
+    add(finalScore);
+}
+
+//moving clouds in background
+function movingClouds(){
+    randomY = Randomizer.nextInt(0, getHeight() - 300);
+    bgCloud.setPosition(getWidth(), randomY);
+    add(bgCloud);
+    moveCloud();
+}
+
+//actually moves the cloud
+function moveCloud(){
+    if(bgCloud.getX() > -200){
+        window.requestAnimationFrame(moveCloud, 150);
+    }
+    
+    bgCloud.move(-1, 0);
+    
+    if(bgCloud.getX() < -200 ){
+        bgCloud.setPosition(getWidth(), bgCloud.getY())
+    }
+}
